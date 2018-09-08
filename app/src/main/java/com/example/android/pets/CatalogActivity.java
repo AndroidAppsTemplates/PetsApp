@@ -21,10 +21,14 @@ import com.example.android.pets.data.PetDbHelper;
  */
 public class CatalogActivity extends AppCompatActivity {
 
+    private PetDbHelper mDbHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_catalog);
+
+        mDbHelper = new PetDbHelper(this);
 
         // Setup FAB to open EditorActivity
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -44,9 +48,6 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        PetDbHelper mDbHelper = new PetDbHelper(this);
 
         // Create and/or open a database to read from it
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -73,10 +74,8 @@ public class CatalogActivity extends AppCompatActivity {
         cv.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
         cv.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
-        SQLiteDatabase db = new PetDbHelper(this).getWritableDatabase();
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
         db.insert(PetEntry.TABLE_NAME, null, cv);
-
-        displayDatabaseInfo();
     }
 
     @Override
@@ -94,6 +93,8 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                 insertPet();
+                displayDatabaseInfo();
+
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
