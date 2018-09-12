@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.android.pets.data.PetContract.PetEntry;
@@ -100,6 +101,22 @@ public class PetProvider extends ContentProvider {
      * for that specific row in the database.
      */
     private Uri insertPet(Uri uri, ContentValues values) {
+        String petName = values.getAsString(PetEntry.COLUMN_PET_NAME);
+        Integer petGender = values.getAsInteger(PetEntry.COLUMN_PET_GENDER);
+        Integer petWeight = values.getAsInteger(PetEntry.COLUMN_PET_WEIGHT);
+
+        if(petName == null) {
+            throw new IllegalArgumentException("Pet requires a name");
+        }
+
+        if(petGender == null || !PetEntry.isValidGender(petGender)) {
+            throw new IllegalArgumentException("Pet requires a valid gender");
+        }
+
+        if(petWeight != null && petWeight < 0) {
+            throw new IllegalArgumentException("Pet requires a valid weight");
+        }
+
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
 
         long id = database.insert(PetEntry.TABLE_NAME, null, values);
