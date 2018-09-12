@@ -15,8 +15,9 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -31,7 +32,6 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract.PetEntry;
-import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Allows user to create a new pet or edit an existing one.
@@ -56,8 +56,6 @@ public class EditorActivity extends AppCompatActivity {
      */
     private int mGender = 0;
 
-    private PetDbHelper mDbHelper;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,7 +66,6 @@ public class EditorActivity extends AppCompatActivity {
         mBreedEditText = (EditText) findViewById(R.id.edit_pet_breed);
         mWeightEditText = (EditText) findViewById(R.id.edit_pet_weight);
         mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
-        mDbHelper = new PetDbHelper(this);
 
         setupSpinner();
     }
@@ -125,11 +122,14 @@ public class EditorActivity extends AppCompatActivity {
         contentValues.put(PetEntry.COLUMN_PET_GENDER, petGender);
         contentValues.put(PetEntry.COLUMN_PET_WEIGHT, petWeight);
 
-        SQLiteDatabase database = mDbHelper.getWritableDatabase();
-        long petId = database.insert(PetEntry.TABLE_NAME, null, contentValues);
+        Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, contentValues);
 
-        String message = petId > 0 ? "Pet saved with id: " + petId : "Error with saving pet";
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        int messageResId = R.string.pet_added;
+        if(uri == null) {
+            messageResId = R.string.pet_not_added;
+        }
+
+        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
     }
 
     @Override
