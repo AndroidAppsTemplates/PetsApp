@@ -134,7 +134,52 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public int update(@NonNull Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
-        return 0;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            // If updating the whole table
+            case PETS:
+                return updatePet(uri, contentValues, selection, selectionArgs);
+
+            // If updating specific row
+            case PET_ID:
+                selection = PetEntry._ID + "=?";
+                // Extract the id value from the Uri
+                selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
+                return updatePet(uri, contentValues, selection, selectionArgs);
+
+            default:
+                throw new IllegalArgumentException("Update is not supported for " + uri);
+        }
+    }
+
+    private int updatePet(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+        // Return early if contentValues is empty
+        if(contentValues.size() == 0) {
+            return 0;
+        }
+
+        if(contentValues.containsKey(PetEntry.COLUMN_PET_NAME)) {
+            if(contentValues.getAsString(PetEntry.COLUMN_PET_NAME) == null) {
+                throw new IllegalArgumentException("Pet requires a valid name");
+            }
+        }
+
+        if(contentValues.containsKey(PetEntry.COLUMN_PET_GENDER)) {
+            Integer petGender = contentValues.getAsInteger(PetEntry.COLUMN_PET_GENDER);
+            if(petGender == null || !PetEntry.isValidGender(petGender)) {
+                throw new IllegalArgumentException("Pet requires a valid gender");
+            }
+        }
+
+        if(contentValues.containsKey(PetEntry.COLUMN_PET_WEIGHT)) {
+            Integer petWeight = contentValues.getAsInteger(PetEntry.COLUMN_PET_WEIGHT);
+            if(petWeight != null && petWeight < 0) {
+                throw new IllegalArgumentException("Pet requires a valid weight");
+            }
+        }
+
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+        return database.update(PetEntry.TABLE_NAME, contentValues, selection, selectionArgs);
     }
 
     /**
